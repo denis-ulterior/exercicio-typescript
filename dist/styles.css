@@ -57,3 +57,9 @@ body{
     display: flex;
     justify-content: center;
 }
+.hidden{
+    display: none;
+}
+.criaLista{
+    padding-top: 3pt;
+}

@@ -10,21 +10,25 @@
 // Atenção para o listener do botão login-button que devolve o sessionID do usuário
 // É necessário fazer um cadastro no https://www.themoviedb.org/ e seguir a documentação do site para entender como gera uma API key https://developers.themoviedb.org/3/getting-started/introduction
 
-let apiKey: string = '';
-let requestToken: string;
-let username: string;
-let password: string;
-let sessionId: string;
-let listId: string = '';
+let apiKey: string = ''
+let requestToken: string
+let username: string
+let password: string
+let sessionId: string
+let listId: string
 
 let loginButton = document.getElementById('login-button') as HTMLInputElement
 let searchButton = document.getElementById('search-button') as HTMLInputElement
 let searchContainer = document.getElementById('search-container') as HTMLInputElement
+let busListaBtn = document.getElementById('buscaLista') as HTMLInputElement
 
 loginButton.addEventListener('click', async () => {
     await criarRequestToken();
     await logar();
     await criarSessao();
+})
+busListaBtn.addEventListener('click', async () => {
+    preencherNomeLista()
 })
 
 searchButton.addEventListener('click', async () => {
@@ -37,22 +41,11 @@ searchButton.addEventListener('click', async () => {
     //let query = document.getElementById('search').value;
     let listaDeFilmes: any = await procurarFilme(query)
     let quadroFilmes = document.getElementById("filmes") as HTMLInputElement
+    quadroFilmes.innerHTML = ''
     let ul = document.createElement('ul')
     for (const item of listaDeFilmes.results) {
-        let quadroPoster =document.createElement('div')
-        let quadroTitulo =document.createElement('div')
-        quadroPoster.classList.add('poster')
-        quadroTitulo.classList.add('titulo')
-        let li = document.createElement('li')
-        let img = document.createElement('img')
-        img.src="https://image.tmdb.org/t/p/w500/"+item.poster_path
+        criarPost(ul, item)
 
-        quadroTitulo.appendChild(document.createTextNode(item.original_title))
-        quadroPoster.appendChild(img)
-        li.appendChild(quadroTitulo)
-        li.appendChild(quadroPoster)
-        ul.appendChild(li)
-        
     }
 
     console.log(listaDeFilmes);
@@ -70,6 +63,12 @@ function preencherLogin() {
     username = String(user.value)
     validateLoginButton();
 }
+function preencherNomeLista() {
+    let nomeLista = document.getElementById('idLista') as HTMLInputElement
+    listId = String(nomeLista.value)
+    console.log(listId)
+    pegarLista();
+}
 
 function preencherApi() {
     let chave = document.getElementById('api-key') as HTMLInputElement
@@ -86,7 +85,7 @@ function validateLoginButton() {
 }
 
 class HttpClient {
-    static async get({ url='', method='', body =JSON.parse('{}')}) {
+    static async get({ url = '', method = '', body = JSON.parse('{}') }) {
         return new Promise((resolve, reject) => {
             let request = new XMLHttpRequest();
             request.open(method, url, true);
@@ -117,7 +116,7 @@ class HttpClient {
     }
 }
 
-async function procurarFilme(query:string) {
+async function procurarFilme(query: string) {
     query = encodeURI(query)
     console.log(query)
     let result = await HttpClient.get({
@@ -127,7 +126,7 @@ async function procurarFilme(query:string) {
     return result
 }
 
-async function adicionarFilme(filmeId:number) {
+async function adicionarFilme(filmeId: number) {
     let result = await HttpClient.get({
         url: `https://api.themoviedb.org/3/movie/${filmeId}?api_key=${apiKey}&language=en-US`,
         method: "GET"
@@ -136,7 +135,7 @@ async function adicionarFilme(filmeId:number) {
 }
 
 async function criarRequestToken() {
-    let result:any = await HttpClient.get({
+    let result: any = await HttpClient.get({
         url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
         method: "GET"
     })
@@ -156,14 +155,14 @@ async function logar() {
 }
 
 async function criarSessao() {
-    let result:any = await HttpClient.get({
+    let result: any = await HttpClient.get({
         url: `https://api.themoviedb.org/3/authentication/session/new?api_key=${apiKey}&request_token=${requestToken}`,
         method: "GET"
     })
     sessionId = result.session_id;
 }
 
-async function criarLista(nomeDaLista:string, descricao:string) {
+async function criarLista(nomeDaLista: string, descricao: string) {
     let result = await HttpClient.get({
         url: `https://api.themoviedb.org/3/list?api_key=${apiKey}&session_id=${sessionId}`,
         method: "POST",
@@ -176,7 +175,7 @@ async function criarLista(nomeDaLista:string, descricao:string) {
     console.log(result);
 }
 
-async function adicionarFilmeNaLista(filmeId:number, listaId:number) {
+async function adicionarFilmeNaLista(filmeId: number, listaId: number) {
     let result = await HttpClient.get({
         url: `https://api.themoviedb.org/3/list/${listaId}/add_item?api_key=${apiKey}&session_id=${sessionId}`,
         method: "POST",
@@ -188,22 +187,30 @@ async function adicionarFilmeNaLista(filmeId:number, listaId:number) {
 }
 
 async function pegarLista() {
-    let result = await HttpClient.get({
+    let result: any = await HttpClient.get({
         url: `https://api.themoviedb.org/3/list/${listId}?api_key=${apiKey}`,
         method: "GET"
     })
+    let quadroFilmes = document.getElementById("filmes") as HTMLInputElement
+    quadroFilmes.innerHTML = ''
+    let ul = document.createElement('ul')
+    for (const item of result.items) {
+        criarPost(ul, item)
+    }
+    quadroFilmes.appendChild(ul)
     console.log(result);
 }
-
-{/* <div style="display: flex;">
-  <div style="display: flex; width: 300px; height: 100px; justify-content: space-between; flex-direction: column;">
-      <input id="login" placeholder="Login" onchange="preencherLogin(event)">
-      <input id="senha" placeholder="Senha" type="password" onchange="preencherSenha(event)">
-      <input id="api-key" placeholder="Api Key" onchange="preencherApi()">
-      <button id="login-button" disabled>Login</button>
-  </div>
-  <div id="search-container" style="margin-left: 20px">
-      <input id="search" placeholder="Escreva...">
-      <button id="search-button">Pesquisar Filme</button>
-  </div>
-</div>*/}
+function criarPost(elem: Node, item: any) {
+    let quadroPoster = document.createElement('div')
+    let quadroTitulo = document.createElement('div')
+    quadroPoster.classList.add('poster')
+    quadroTitulo.classList.add('titulo')
+    let li = document.createElement('li')
+    let img = document.createElement('img')
+    img.src = "https://image.tmdb.org/t/p/w500/" + item.poster_path
+    quadroTitulo.appendChild(document.createTextNode(item.original_title))
+    quadroPoster.appendChild(img)
+    li.appendChild(quadroTitulo)
+    li.appendChild(quadroPoster)
+    elem.appendChild(li)
+}
