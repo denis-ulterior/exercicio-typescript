@@ -35,16 +35,28 @@ searchButton.addEventListener('click', async () => {
     let queryTemp = document.getElementById('search') as HTMLInputElement
     let query: string = String(queryTemp.value)
     //let query = document.getElementById('search').value;
-    let listaDeFilmes: any = await procurarFilme(query);
-    let ul = document.createElement('ul');
-    ul.id = "lista"
+    let listaDeFilmes: any = await procurarFilme(query)
+    let quadroFilmes = document.getElementById("filmes") as HTMLInputElement
+    let ul = document.createElement('ul')
     for (const item of listaDeFilmes.results) {
-        let li = document.createElement('li');
-        li.appendChild(document.createTextNode(item.original_title))
+        let quadroPoster =document.createElement('div')
+        let quadroTitulo =document.createElement('div')
+        quadroPoster.classList.add('poster')
+        quadroTitulo.classList.add('titulo')
+        let li = document.createElement('li')
+        let img = document.createElement('img')
+        img.src="https://image.tmdb.org/t/p/w500/"+item.poster_path
+
+        quadroTitulo.appendChild(document.createTextNode(item.original_title))
+        quadroPoster.appendChild(img)
+        li.appendChild(quadroTitulo)
+        li.appendChild(quadroPoster)
         ul.appendChild(li)
+        
     }
+
     console.log(listaDeFilmes);
-    searchContainer.appendChild(ul);
+    quadroFilmes.appendChild(ul)
 })
 
 function preencherSenha() {
