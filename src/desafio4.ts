@@ -22,7 +22,10 @@ let searchButton = document.getElementById('search-button') as HTMLInputElement
 let searchContainer = document.getElementById('search-container') as HTMLInputElement
 let busListaBtn = document.getElementById('buscaLista') as HTMLInputElement
 let criaLista = document.getElementById('criaLista') as HTMLInputElement
-
+let ocultarLogin = function(){
+    let ocultaLogin = document.getElementById('areaLogin') as HTMLInputElement
+    ocultaLogin.className = ('hidden')
+}
 interface ResultadoBusca {
     page: number,
     results: Array<Filme>,
@@ -213,6 +216,8 @@ async function criarSessao() {
     if(result.success){
         console.log(result)
         sessionId = result.session_id;
+        window.alert('Sessão iniciada com sucesso')
+        ocultarLogin()
     }
     
 }

@@ -68,3 +68,6 @@ span{
     font-weight: bold;
 
 }
+.areaLogin{
+    display: flex; width: 300px; height: 100px; justify-content: space-between; flex-direction: column;
+}
