@@ -12,7 +12,7 @@ body{
 }
 .titulo{
     float: left;
-    width: 130pt;
+    width: 200pt;
     
 }
 .poster{
@@ -50,8 +50,9 @@ body{
     padding: 5pt;
     background-color: rgb(255, 255, 255);
     display: flex;
-    width: 230pt;
+    width: 300pt;
     justify-content: space-between;
+    min-height: 250pt;
 }
 .busca{
     display: flex;
@@ -62,4 +63,8 @@ body{
 }
 .criaLista{
     padding-top: 3pt;
+}
+span{
+    font-weight: bold;
+
 }

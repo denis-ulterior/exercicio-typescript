@@ -21,6 +21,7 @@ let loginButton = document.getElementById('login-button') as HTMLInputElement
 let searchButton = document.getElementById('search-button') as HTMLInputElement
 let searchContainer = document.getElementById('search-container') as HTMLInputElement
 let busListaBtn = document.getElementById('buscaLista') as HTMLInputElement
+let criaLista = document.getElementById('criaLista') as HTMLInputElement
 
 interface ResultadoBusca {
     page: number,
@@ -40,14 +41,34 @@ interface Filme {
     poster_path: string,
     release_date: string
 }
-interface Lista{
-    created_by:string,
-    description:string,
+interface Lista {
+    created_by: string,
+    description: string,
     favorite_count: number,
     id: string,
     items: Array<Filme>
 }
+interface ResultAddLista {
+    success: boolean,
+    status_code: number,
+    status_message: string
+}
+interface CriaLista {
+    status_code: number,
+    status_message: string,
+    success: boolean,
+    list_id: number
+}
 
+interface Sessao {
+    success: boolean,
+    session_id: string
+}
+interface Token{
+    success: boolean,
+    expires_at: string,
+    request_token:string
+}
 loginButton.addEventListener('click', async () => {
     await criarRequestToken();
     await logar();
@@ -56,7 +77,12 @@ loginButton.addEventListener('click', async () => {
 busListaBtn.addEventListener('click', async () => {
     preencherNomeLista()
 })
-
+criaLista.addEventListener('click', async () => {
+    let lista = document.getElementById('idLista') as HTMLInputElement
+    if (lista) {
+        criarLista(lista.value, '')
+    }
+})
 searchButton.addEventListener('click', async () => {
     let lista = document.getElementById("lista");
     if (lista) {
@@ -75,7 +101,6 @@ searchButton.addEventListener('click', async () => {
         quadroFilmes.appendChild(ul)
         listenerBtn(String(item.id))
     }
-    
 })
 
 function preencherSenha() {
@@ -160,10 +185,11 @@ async function adicionarFilme(filmeId: number) {
 }
 
 async function criarRequestToken() {
-    let result: any = await HttpClient.get({
+    let result = await HttpClient.get({
         url: `https://api.themoviedb.org/3/authentication/token/new?api_key=${apiKey}`,
         method: "GET"
-    })
+    }) as Token
+    console.log(result)
     requestToken = result.request_token
 }
 
@@ -180,11 +206,15 @@ async function logar() {
 }
 
 async function criarSessao() {
-    let result: any = await HttpClient.get({
+    let result = await HttpClient.get({
         url: `https://api.themoviedb.org/3/authentication/session/new?api_key=${apiKey}&request_token=${requestToken}`,
         method: "GET"
-    })
-    sessionId = result.session_id;
+    }) as Sessao
+    if(result.success){
+        console.log(result)
+        sessionId = result.session_id;
+    }
+    
 }
 
 async function criarLista(nomeDaLista: string, descricao: string) {
@@ -196,7 +226,11 @@ async function criarLista(nomeDaLista: string, descricao: string) {
             description: descricao,
             language: "pt-br"
         }
-    })
+    }) as CriaLista
+    if (result.status_code == 1) {
+        window.alert(`Criada nova lista ${nomeDaLista} com id ${result.list_id}`)
+        console.log(result.list_id)
+    }
 }
 
 async function adicionarFilmeNaLista(filmeId: string, listaId: string) {
@@ -206,8 +240,12 @@ async function adicionarFilmeNaLista(filmeId: string, listaId: string) {
         body: {
             media_id: filmeId
         }
-    })
-    console.log(result);
+    }) as ResultAddLista
+    if (result.success) {
+        console.log(result);
+        window.alert(`Item adicionado a lista ${listaId}`)
+    }
+
 }
 
 async function pegarLista() {
@@ -227,28 +265,33 @@ function criarPost(elem: Node, item: Filme) {
     let quadroPoster = document.createElement('div')
     let quadroTitulo = document.createElement('div')
     let btnAdd = document.createElement('button')
-    btnAdd.id=String(item.id)
-    btnAdd.innerHTML=('ADD A LISTA')
+    btnAdd.id = String(item.id)
+    btnAdd.innerHTML = ('ADD A LISTA')
     quadroPoster.classList.add('poster')
     quadroTitulo.classList.add('titulo')
     let li = document.createElement('li')
     let img = document.createElement('img')
     img.src = "https://image.tmdb.org/t/p/w500/" + item.poster_path
-    quadroTitulo.appendChild(document.createTextNode(item.original_title))
+    let tagTitle = document.createElement('span')
+    tagTitle.innerText = item.original_title + ": "
+    let tagResumo = document.createElement('p')
+    tagResumo.innerText = item.overview
+    quadroTitulo.appendChild(tagTitle)
+    quadroTitulo.appendChild(tagResumo)
     quadroTitulo.appendChild(btnAdd)
     quadroPoster.appendChild(img)
     li.appendChild(quadroTitulo)
     li.appendChild(quadroPoster)
     elem.appendChild(li)
-    
+
 }
-function listenerBtn(id:string){
+function listenerBtn(id: string) {
     console.log(id)
     const btn = document.getElementById(id) as HTMLInputElement
-    btn.addEventListener('click',()=>{
-        let lista  = document.getElementById('idLista') as HTMLInputElement
-        if(lista){
-            adicionarFilmeNaLista(id,lista.value)
+    btn.addEventListener('click', () => {
+        let lista = document.getElementById('idLista') as HTMLInputElement
+        if (lista) {
+            adicionarFilmeNaLista(id, lista.value)
         }
     })
 }
