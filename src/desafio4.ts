@@ -22,6 +22,32 @@ let searchButton = document.getElementById('search-button') as HTMLInputElement
 let searchContainer = document.getElementById('search-container') as HTMLInputElement
 let busListaBtn = document.getElementById('buscaLista') as HTMLInputElement
 
+interface ResultadoBusca {
+    page: number,
+    results: Array<Filme>,
+    totalPages: number,
+    totalResults: number
+}
+interface Filme {
+    adult: boolean,
+    genre_ids: Array<Number>,
+    id: number,
+    original_language: string,
+    original_title: string,
+    overview: string,
+    popularity: number,
+    title: string,
+    poster_path: string,
+    release_date: string
+}
+interface Lista{
+    created_by:string,
+    description:string,
+    favorite_count: number,
+    id: string,
+    items: Array<Filme>
+}
+
 loginButton.addEventListener('click', async () => {
     await criarRequestToken();
     await logar();
@@ -39,16 +65,15 @@ searchButton.addEventListener('click', async () => {
     let queryTemp = document.getElementById('search') as HTMLInputElement
     let query: string = String(queryTemp.value)
     //let query = document.getElementById('search').value;
-    let listaDeFilmes: any = await procurarFilme(query)
+    let listaDeFilmes: ResultadoBusca = await procurarFilme(query) as ResultadoBusca
     let quadroFilmes = document.getElementById("filmes") as HTMLInputElement
     quadroFilmes.innerHTML = ''
     let ul = document.createElement('ul')
+    //console.log(listaDeFilmes)
     for (const item of listaDeFilmes.results) {
         criarPost(ul, item)
 
     }
-
-    console.log(listaDeFilmes);
     quadroFilmes.appendChild(ul)
 })
 
@@ -187,10 +212,10 @@ async function adicionarFilmeNaLista(filmeId: number, listaId: number) {
 }
 
 async function pegarLista() {
-    let result: any = await HttpClient.get({
+    let result: Lista = await HttpClient.get({
         url: `https://api.themoviedb.org/3/list/${listId}?api_key=${apiKey}`,
         method: "GET"
-    })
+    }) as Lista
     let quadroFilmes = document.getElementById("filmes") as HTMLInputElement
     quadroFilmes.innerHTML = ''
     let ul = document.createElement('ul')
@@ -200,7 +225,7 @@ async function pegarLista() {
     quadroFilmes.appendChild(ul)
     console.log(result);
 }
-function criarPost(elem: Node, item: any) {
+function criarPost(elem: Node, item: Filme) {
     let quadroPoster = document.createElement('div')
     let quadroTitulo = document.createElement('div')
     quadroPoster.classList.add('poster')
