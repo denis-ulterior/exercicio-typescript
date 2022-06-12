@@ -72,9 +72,10 @@ searchButton.addEventListener('click', async () => {
     //console.log(listaDeFilmes)
     for (const item of listaDeFilmes.results) {
         criarPost(ul, item)
-
+        quadroFilmes.appendChild(ul)
+        listenerBtn(String(item.id))
     }
-    quadroFilmes.appendChild(ul)
+    
 })
 
 function preencherSenha() {
@@ -114,7 +115,6 @@ class HttpClient {
         return new Promise((resolve, reject) => {
             let request = new XMLHttpRequest();
             request.open(method, url, true);
-
             request.onload = () => {
                 if (request.status >= 200 && request.status < 300) {
                     resolve(JSON.parse(request.responseText));
@@ -197,10 +197,9 @@ async function criarLista(nomeDaLista: string, descricao: string) {
             language: "pt-br"
         }
     })
-    console.log(result);
 }
 
-async function adicionarFilmeNaLista(filmeId: number, listaId: number) {
+async function adicionarFilmeNaLista(filmeId: string, listaId: string) {
     let result = await HttpClient.get({
         url: `https://api.themoviedb.org/3/list/${listaId}/add_item?api_key=${apiKey}&session_id=${sessionId}`,
         method: "POST",
@@ -223,19 +222,33 @@ async function pegarLista() {
         criarPost(ul, item)
     }
     quadroFilmes.appendChild(ul)
-    console.log(result);
 }
 function criarPost(elem: Node, item: Filme) {
     let quadroPoster = document.createElement('div')
     let quadroTitulo = document.createElement('div')
+    let btnAdd = document.createElement('button')
+    btnAdd.id=String(item.id)
+    btnAdd.innerHTML=('ADD A LISTA')
     quadroPoster.classList.add('poster')
     quadroTitulo.classList.add('titulo')
     let li = document.createElement('li')
     let img = document.createElement('img')
     img.src = "https://image.tmdb.org/t/p/w500/" + item.poster_path
     quadroTitulo.appendChild(document.createTextNode(item.original_title))
+    quadroTitulo.appendChild(btnAdd)
     quadroPoster.appendChild(img)
     li.appendChild(quadroTitulo)
     li.appendChild(quadroPoster)
     elem.appendChild(li)
+    
+}
+function listenerBtn(id:string){
+    console.log(id)
+    const btn = document.getElementById(id) as HTMLInputElement
+    btn.addEventListener('click',()=>{
+        let lista  = document.getElementById('idLista') as HTMLInputElement
+        if(lista){
+            adicionarFilmeNaLista(id,lista.value)
+        }
+    })
 }
